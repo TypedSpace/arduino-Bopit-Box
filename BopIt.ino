@@ -1,3 +1,11 @@
+// Game discription: BOPIT
+// The game is simply BopIt the player is given a limited amount of time
+// to complete the given instruction on the LCD, if he fails
+// he loses the game, if he succeeds he gets points and continues with the game
+// as the game progresses the player has less and less time to complete the insturction
+// and the rate at which events occur becomes much more rapid
+
+
 #include <string.h>; // makes working with strings much easier
 #include <LiquidCrystal.h>;
 
@@ -17,6 +25,8 @@ void setup()
 {
     Serial.begin(9600);
     lcd.begin(16, 2); // set up number of columns and rows
+    lcd.setCursor(0,0);
+    lcd.print("Bop It");
 }
 
 String getJoyStickPosition(int x, int y)
@@ -60,59 +70,60 @@ String getJoyStickPosition(int x, int y)
     }
     }
 };
+void handlePoints(int amount, bool Reset) {
+    lcd.setCursor(9, 1);
+    lcd.print(amount);
 
-void handleRound(bool playerPassed)
-{
-    if (playerPassed)
-    {
-        lcd.clear();
-        lcd.print("Good Job!");
+    if (Reset) {
+        lcd.print("------");
     }
-    else
-    {
-        lcd.clear();
-        lcd.print("You lost :(");
-    }
+
 }
 
+// Game pre-sets
+
 int score = 0;
+int timePerRound = 3; // seconds
+int timeBetweenRounds = 5; // seconds
 
-void loop()
-{
-    int chosenNumber = rand() % 4;
-    String chosenEvent = events[chosenNumber];
+bool hasWon;
 
-    bool playerPassedRound;
+void loop() {
 
-    lcd.clear();
-    lcd.setCursor(0, 0);
+    int randomNumber = rand() % 4;
+    String chosenEvent = events[randomNumber];
+
+    lcd.setCursor(0, 2);
     lcd.print(chosenEvent);
 
-    for (int i; i < 120; i++)
-    {
-        int xValue = analogRead(joyX);
-        int yValue = analogRead(joyY);
+    for (int i; timePerRound/0.05 > i; i++) {
+        delay(50);
 
-        String joyStickPos = getJoyStickPosition(xValue, yValue);
+        int VRx = analogRead(joyX);
+        int VRy = analogRead(joyY);
+        String joyStickPos = getJoyStickPosition(VRx, VRy);
 
-        if (joyStickPos == chosenEvent)
-        {
-            playerPassedRound = true;
-            handleRound(true);
+        if (joyStickPos == chosenEvent) {
+            handlePoints(score, false);
+            hasWon = true;
             break;
-        }
-        else if (joyStickPos == "center")
-        {
-            continue;
-        }
-        else
-        {
-            handleRound(false);
-            playerPassedRound = true;
+        } else if (joyStickPos != "center") {
+            handlePoints(score, true);
+            hasWon = false;
+            break;
         }
     }
 
-    
-    lcd.clear();
-    lcd.print("Next");
+    if (hasWon) {
+        lcd.setCursor(0, 2);
+        lcd.print("You passed!");
+        score = score + 1;
+    } else {
+        lcd.setCursor(0, 2);
+        lcd.print("You Lost :(");
+        score = 0;
+    }
+
+    delay(timeBetweenRounds * 1000);
+
 }
