@@ -4,6 +4,8 @@
 // he loses the game, if he succeeds he gets points and continues with the game
 // as the game progresses the player has less and less time to complete the insturction
 // and the rate at which events occur becomes much more rapid
+//
+
 
 #include <string.h>; // makes working with strings much easier
 #include <LiquidCrystal.h>;
